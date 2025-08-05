@@ -1,31 +1,50 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import {  useNavigate } from "react-router-dom";
 
 function HomePage() {
   const [products, setProducts] = useState([]);
   const [isError, setIsError] = useState(null);
-  const [isLoading, setIsLoading] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  let navigator = useNavigate();
 
+// get product data
   const getProducts = async () => {
     try {
       setIsError(false);
-      setIsLoading(true);
-      const results = await axios("http://localhost:4001/products");
+      const results = await axios.get("http://localhost:4001/products");
       setProducts(results.data.data);
       setIsLoading(false);
     } catch (error) {
       setIsError(true);
     }
   };
+  // delete product data
+  let deleteProduct = async(id) => {
+    await axios.delete(`http://localhost:4001/products/${id}`)
+    getProducts()
+  }
+
+  function goToCreateProductPage() {
+    navigator("/product/create");
+  }
+  function goToVeiwProductPage(id){
+    navigator(`/product/view/${id}`);
+  }
+  function goToEditProductPage(id){
+    navigator(`/product/edit/${id}`)
+  }
+
 
   useEffect(() => {
     getProducts();
   }, []);
+
   return (
     <div>
       <div className="app-wrapper">
         <h1 className="app-title">Products</h1>
-        <button>Create Product</button>
+        <button onClick={() => goToCreateProductPage()}>Create Product</button>
       </div>
       <div className="product-list">
         {products.map((product) => {
@@ -44,12 +63,12 @@ function HomePage() {
                 <h2>Product price: {product.price}</h2>
                 <p>Product description: {product.description} </p>
                 <div className="product-actions">
-                  <button className="view-button">View</button>
-                  <button className="edit-button">Edit</button>
+                  <button className="view-button" onClick={() => {goToVeiwProductPage(product.id)}}>View</button>
+                  <button className="edit-button" onClick={() => {goToEditProductPage(product.id)}}>Edit</button>
                 </div>
               </div>
 
-              <button className="delete-button">x</button>
+              <button className="delete-button" onClick={() => {deleteProduct(product.id)}}>x</button>
             </div>
           );
         })}
